@@ -45,6 +45,26 @@ export default function Home() {
               return `down`;
             }
             break;
+          case "KeyA":
+            if (prevDirection !== `right`) {
+              return "left";
+            }
+            break;
+          case "KeyD":
+            if (prevDirection !== `left`) {
+              return "right";
+            }
+            break;
+          case "KeyW":
+            if (prevDirection !== `down`) {
+              return `up`;
+            }
+            break;
+          case "KeyS":
+            if (prevDirection !== `up`) {
+              return `down`;
+            }
+            break;
         }
         return prevDirection;
       });
