@@ -1,33 +1,66 @@
 import { useEffect, useState } from "react";
 import useInterval from "use-interval";
-const zoom = 10;
-const areaWidth = 30;
-const areaHeight = 30;
+const zoom = 15;
+const areaWidth = 40;
+const areaHeight = 40;
+
 export default function Home() {
-  const [body, setbody] = useState([
-    { top: 3, left: 5 },
-    { top: 3, left: 4 },
-    { top: 3, left: 3 },
-  ]);
-  const [direction, setDirection] = useState("right");
-  useEffect(() => {
-    window.addEventListener(`keydown`, (e) => {
-      switch (e.code) {
-        case "ArrowLeft":
-          setDirection("left");
-          break;
-        case "ArrowRight":
-          setDirection("right");
-          break;
-        case "ArrowUp":
-          setDirection("up");
-          break;
-        case "ArrowDown":
-          setDirection("down");
-          break;
-      }
-    });
+  function getRandomInt(max) {
+    return Math.floor(Math.random() * max);
+  }
+  const [apple, setApple] = useState({
+    top: getRandomInt(areaHeight - 1),
+    left: getRandomInt(areaWidth - 1),
   });
+  const [count, setCount] = useState(-1);
+  const [body, setbody] = useState([
+    { top: 3, left: 11 },
+    { top: 3, left: 10 },
+    { top: 3, left: 9 },
+  ]);
+
+  const [direction, setDirection] = useState("right");
+  useEffect((e) => {
+    eatApple();
+    window.addEventListener(`keydown`, (e) => {
+      setDirection((prevDirection) => {
+        switch (e.code) {
+          case "ArrowLeft":
+            if (prevDirection !== `right`) {
+              return "left";
+            }
+            break;
+          case "ArrowRight":
+            if (prevDirection !== `left`) {
+              return "right";
+            }
+            break;
+          case "ArrowUp":
+            if (prevDirection !== `down`) {
+              return `up`;
+            }
+            break;
+          case "ArrowDown":
+            if (prevDirection !== `up`) {
+              return `down`;
+            }
+            break;
+        }
+        return prevDirection;
+      });
+    });
+  }, []);
+  function eatApple() {
+    const top = getRandomInt(areaHeight - 1);
+    const left = getRandomInt(areaWidth - 1);
+    for (let i = 0; i < body.length; i++) {
+      if (top !== body[i].top && left !== body[i].left) {
+        setApple({ top, left });
+        setCount(count + 1);
+      }
+    }
+  }
+
   function goRight() {
     const newbody = [...body];
     newbody.pop();
@@ -99,11 +132,21 @@ export default function Home() {
         goUp();
         break;
     }
-  }, 100);
+
+    if (body[0].top === apple.top && body[0].left === apple.left) {
+      eatApple();
+      setbody([...body, body[1]]);
+    }
+    for (let i = 1; i < body.length; i++) {
+      if (body[i].top === body[0].top && body[i].left === body[0].left) {
+        alert("game over");
+        window.location.reload();
+      }
+    }
+  }, 1000 / body.length);
   return (
-    <main
-      className={`flex min-h-screen flex-col items-center justify-between p-24`}
-    >
+    <main className={`flex min-h-screen flex-col items-center  p-24`}>
+      <div>score {count}</div>
       <div
         className="relative bg-slate-300"
         style={{ width: areaWidth * zoom, height: areaHeight * zoom }}
@@ -119,6 +162,17 @@ export default function Home() {
             }}
           ></div>
         ))}
+
+        <div
+          className="absolute rounded bg-slate-900"
+          style={{
+            top: apple.top * zoom,
+            left: apple.left * zoom,
+            width: zoom,
+            height: zoom,
+            background: "red",
+          }}
+        ></div>
       </div>
     </main>
   );
