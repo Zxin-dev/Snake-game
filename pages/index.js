@@ -153,6 +153,22 @@ export default function Home() {
       }
     }
   }
+  useInterval(() => {
+    end();
+  }, 100);
+
+  const end = () => {
+    const deleteSnake = [...body];
+    deleteSnake.shift();
+    if (
+      deleteSnake.find((e) => e.top === body[0].top && e.left === body[0].left)
+    ) {
+      if (count > window.localStorage.getItem("Score")) {
+        window.localStorage.setItem("Score", count);
+      }
+      location.reload();
+    }
+  };
 
   function goRight() {
     const newbody = [...body];
@@ -217,13 +233,15 @@ export default function Home() {
       eatApple();
       setbody([...body, body[1]]);
     }
-    for (let i = 1; i < body.length; i++) {
-      if (body[i].top === body[0].top && body[i].left === body[0].left) {
-        if (count > window.localStorage.getItem("Score")) {
-          window.localStorage.setItem("Score", count);
-        }
-        window.location.reload();
+
+    if (
+      locate &&
+      locate.find((e) => e.top === body[0].top && e.left === body[0].left)
+    ) {
+      if (count > window.localStorage.getItem("Score")) {
+        window.localStorage.setItem("Score", count);
       }
+      location.reload();
     }
   }, 1000 / speed);
 
