@@ -18,7 +18,7 @@ export default function Home() {
     top: getRandomInt(areaHeight - 1),
     left: getRandomInt(areaWidth - 1),
   });
-  const [count, setCount] = useState(-1);
+  const [count, setCount] = useState(0);
   const [highScore, setHighScore] = useState("");
 
   const [body, setbody] = useState([
@@ -93,7 +93,7 @@ export default function Home() {
 
   const [direction, setDirection] = useState("right");
   useEffect((e) => {
-    eatApple();
+    generateFood();
     setHighScore(window.localStorage.getItem("Score"));
     window.addEventListener(`keydown`, (e) => {
       setDirection((prevDirection) => {
@@ -143,16 +143,12 @@ export default function Home() {
       });
     });
   }, []);
-  function eatApple() {
+  function generateFood() {
     const top = getRandomInt(areaHeight - 1);
     const left = getRandomInt(areaWidth - 1);
-    for (let i = 0; i < body.length; i++) {
-      if (top !== body[i].top && left !== body[i].left) {
-        setApple({ top, left });
-        setCount(count + 1);
-      }
-    }
+    setApple({ top, left });
   }
+
   useInterval(() => {
     end();
   }, 100);
@@ -171,67 +167,57 @@ export default function Home() {
   };
 
   function goRight() {
-    const newbody = [...body];
-    newbody.pop();
-    let newLeft = newbody[0].left + 1;
+    let newLeft = body[0].left + 1;
     if (newLeft > areaWidth - 1) {
       newLeft = 0;
     }
-    newbody.unshift({ ...newbody[0], left: newLeft });
-    setbody(newbody);
+
+    return { ...body[0], left: newLeft };
   }
 
   function goDown() {
-    const newbody = [...body];
-    newbody.pop();
-    let newTop = newbody[0].top + 1;
+    let newTop = body[0].top + 1;
     if (newTop > areaHeight - 1) {
       newTop = 0;
     }
-    newbody.unshift({ ...newbody[0], top: newTop });
-    setbody(newbody);
+    return { ...body[0], top: newTop };
   }
 
   function goLeft() {
-    const newbody = [...body];
-    newbody.pop();
-    let newRight = newbody[0].left - 1;
-
+    let newRight = body[0].left - 1;
     if (newRight < 0) {
       newRight = areaWidth - 1;
     }
-    newbody.unshift({ ...newbody[0], left: newRight });
-    setbody(newbody);
+    return { ...body[0], left: newRight };
   }
   function goUp() {
-    const newbody = [...body];
-    newbody.pop();
-    let newBottom = newbody[0].top - 1;
+    let newBottom = body[0].top - 1;
     if (newBottom < 0) {
       newBottom = areaHeight - 1;
     }
-    newbody.unshift({ ...newbody[0], top: newBottom });
-    setbody(newbody);
+
+    return { ...body[0], top: newBottom };
   }
   useInterval(() => {
+    const newbody = [...body];
+    newbody.pop();
+    let newHead = null;
+
     switch (direction) {
       case "right":
-        goRight();
+        newHead = goRight();
         break;
       case "down":
-        goDown();
+        newHead = goDown();
         break;
       case "left":
-        goLeft();
+        newHead = goLeft();
         break;
       case "up":
-        goUp();
+        newHead = goUp();
         break;
-    }
-
-    if (body[0].top === apple.top && body[0].left === apple.left) {
-      eatApple();
-      setbody([...body, body[1]]);
+      default:
+        newHead = goRight();
     }
 
     if (
@@ -242,6 +228,17 @@ export default function Home() {
         window.localStorage.setItem("Score", count);
       }
       location.reload();
+    }
+    newbody.unshift(newHead);
+    const isFoodCosumedBySnake =
+      newbody[0].top === apple.top && newbody[0].left === apple.left;
+    if (isFoodCosumedBySnake) {
+      generateFood();
+      const newBodyAfterFeed = { top: newbody[1].top, left: newbody[1].left };
+      setCount(count + 1);
+      setbody([...newbody, newBodyAfterFeed]);
+    } else {
+      setbody(newbody);
     }
   }, 1000 / speed);
 
